@@ -58,7 +58,4 @@ print(news_df.shape)
 news_df2 = news_df.drop_duplicates()
 print(news_df2.shape) #no duplicates news from different searching words
 display(news_df2.head())
-news_df2.to_csv('data/news_2020030322_20200421.gzip', compression='gzip')
-
-
-# %%
+news_df2.to_csv('data/news_20200322_20200421.gzip', compression='gzip')
