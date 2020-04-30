@@ -1,2 +1,2 @@
-# MSBD_text_mining_nlp_project
+# MSBD 6000I Text mining Group Project
 Group project
