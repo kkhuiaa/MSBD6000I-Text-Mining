@@ -6,6 +6,7 @@ import pandas as pd
 from newsapi import NewsApiClient
 import yfinance as yf
 import yahoofinancials
+import ta
 
 def newsapi_to_df(news_dict_list):
   if len(news_dict_list) > 0:
@@ -19,19 +20,19 @@ def newsapi_to_df(news_dict_list):
   else:
     return pd.DataFrame()
 
-def rsi(price, n=14):
-    ''' rsi indicator '''
-    gain = (price-price.shift(1)).fillna(0) # calculate price gain with previous day, first row nan is filled with 0
+# def rsi(price, n=14):
+#     ''' rsi indicator '''
+#     gain = (price-price.shift(1)).fillna(0) # calculate price gain with previous day, first row nan is filled with 0
 
-    def rsiCalc(p):
-        # subfunction for calculating rsi for one lookback period
-        avgGain = p[p>0].sum()/n
-        avgLoss = -p[p<0].sum()/n 
-        rs = avgGain/avgLoss
-        return 100 - 100/(1+rs)
+#     def rsiCalc(p):
+#         # subfunction for calculating rsi for one lookback period
+#         avgGain = p[p>0].sum()/n
+#         avgLoss = -p[p<0].sum()/n 
+#         rs = avgGain/avgLoss
+#         return 100 - 100/(1+rs)
 
-    # run for all periods with rolling_apply
-    return gain.rolling(n).apply(rsiCalc) 
+#     # run for all periods with rolling_apply
+#     return gain.rolling(n).apply(rsiCalc) 
 
 # %%
 first_days = 14
@@ -39,11 +40,12 @@ price_700_df = yf.download('0700.HK',
                       start='2018-03-29', 
                       end='2020-04-21', 
                       progress=False)
+price_700_df = ta.add_all_ta_features(price_700_df, open='Open', high='High', low='Low', close='Close', volume='Volume')
 price_700_df['Open(t+1)'] = price_700_df['Open'].shift(-1)
-price_700_df['rsi'] = rsi(price_700_df['Open'], n=first_days)
+# price_700_df['rsi'] = rsi(price_700_df['Open'], n=first_days)
 price_700_df = price_700_df.iloc[first_days:]
 price_700_df['Open(t+1) >= Close'] = np.where(price_700_df['Open(t+1)'] >= price_700_df['Close'] , 1, 0)
-price_700_df.head()
+# price_700_df.head()
 price_700_df.to_csv('data/price_20180423-20200421.gzip', compression='gzip')
 
 # %%
