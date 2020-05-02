@@ -35,18 +35,14 @@ def newsapi_to_df(news_dict_list):
 #     return gain.rolling(n).apply(rsiCalc) 
 
 # %%
-first_days = 14
 price_700_df = yf.download('0700.HK', 
-                      start='2018-03-29', 
-                      end='2020-04-21', 
+                      start='2017-10-01', 
+                      end='2020-04-30', 
                       progress=False)
-price_700_df = ta.add_all_ta_features(price_700_df, open='Open', high='High', low='Low', close='Close', volume='Volume')
+price_700_df = ta.add_all_ta_features(price_700_df, open='Open', high='High', low='Low', close='Close', volume='Volume', fillna=True)
 price_700_df['Open(t+1)'] = price_700_df['Open'].shift(-1)
-# price_700_df['rsi'] = rsi(price_700_df['Open'], n=first_days)
-price_700_df = price_700_df.iloc[first_days:]
 price_700_df['Open(t+1) >= Close'] = np.where(price_700_df['Open(t+1)'] >= price_700_df['Close'] , 1, 0)
-# price_700_df.head()
-price_700_df.to_csv('data/price_20180423-20200421.gzip', compression='gzip')
+price_700_df.to_csv('data/price_20171001-20200421.gzip', compression='gzip')
 
 # %%
 newsapi = NewsApiClient(api_key='5209c394a0274f459880a2bd85e07e13') # Init
@@ -62,3 +58,29 @@ for date in date_range:
 news_df = news_df.drop_duplicates(['title'])
 print('final size of the text data', news_df.shape)
 news_df.reset_index(drop=True).to_csv('data/news_20180422-20200421.gzip', compression='gzip')
+
+#%%
+newsapi = NewsApiClient(api_key='5209c394a0274f459880a2bd85e07e13') # Init
+news_df = pd.DataFrame()
+date_range = [str(date)[:10] for date in pd.date_range(start='10/1/2017', end='4/30/2020')] #, end='21/4/2020')
+for date in date_range:
+  df1 = newsapi_to_df(newsapi.get_everything(q='tencent 700', from_param=date, to=date, language='en', sort_by='relevancy', page_size=45)['articles']) #stronger criterion
+  df2 = newsapi_to_df(newsapi.get_everything(q='tencent', from_param=date, to=date, language='en', sort_by='relevancy', page_size=5)['articles']) #weeker criterion
+  df = df1.append(df2)
+  print(date+' total news:', df.shape)
+  news_df = news_df.append(df)
+  print('='*20)
+news_df = news_df.drop_duplicates(['title'])
+print('final size of the text data', news_df.shape)
+news_df.reset_index(drop=True).to_csv('data/news_20171001-20200430.gzip', compression='gzip')
+
+# %%
+sorted(news_df['date'].unique())[:30]
+
+# %%
+news_df.reset_index(drop=True).to_csv('data/news_20171108-20200430.gzip', compression='gzip')
+
+#%%
+len(news_df['date'].unique())
+
+# %%
