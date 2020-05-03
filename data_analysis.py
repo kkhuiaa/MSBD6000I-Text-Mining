@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 from scipy.stats import uniform, randint
 from workalendar.asia import hong_kong
-
 from sklearn.decomposition import PCA
 from sklearn.model_selection import RandomizedSearchCV, train_test_split, StratifiedShuffleSplit
 # from sklearn.metrics import 
@@ -17,14 +16,14 @@ pca.fit(bert_df)
 print('number of pca columns:', pca.n_components_)
 pca_cols = ['title_pca{}'.format(1+i) for i in range(pca.n_components_)]
 title_pca_df = pd.DataFrame(pca.transform(bert_df), index=bert_df.index, columns=pca_cols)
-
+#%%
 news_df = pd.read_csv('data/news_20171001-20200430.gzip', compression='gzip', index_col='title')
-news_df_merged = news_df.merge(title_pca_df, left_index=True, right_index=True)
+news_df_merged = news_df.merge(title_pca_df, left_index=True, right_index=True, how='left')
 news_df_merged_groupby = news_df_merged.groupby('date')[pca_cols].sum()
 # news_df_merged_groupby.columns = ['_'.join(col) for col in news_df_merged_groupby.columns]
 news_df_merged_groupby['news_count'] = news_df_merged['date'].value_counts()
-news_df_merged_groupby = news_df_merged_groupby.iloc[1:, ] #drop 2018-04-22
 
+#%%
 #create holiday column
 cal = hong_kong.HongKong()
 holiday_list = [str(day[0]) for day in cal.holidays(2018)+cal.holidays(2019)+cal.holidays(2020)]
@@ -34,6 +33,7 @@ price_700_df = pd.read_csv('data/price_20171001-20200430.gzip', compression='gzi
 price_700_df['date'] = price_700_df.index
 news_df_merged_groupby2 = news_df_merged_groupby.merge(price_700_df[['date']], left_index=True, right_index=True, how='left')
 
+#%%
 t = 1
 while news_df_merged_groupby2['date'].isnull().any():
     news_df_merged_groupby2['date'] = news_df_merged_groupby2['date'].fillna(news_df_merged_groupby2['date'].shift(t))
