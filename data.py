@@ -33,16 +33,36 @@ def newsapi_to_df(news_dict_list):
 
 #     # run for all periods with rolling_apply
 #     return gain.rolling(n).apply(rsiCalc) 
-
+price_start_day = '2017-10-01'
+price_end_day = '2020-04-30'
 # %%
 price_700_df = yf.download('0700.HK', 
-                      start='2017-10-01', 
-                      end='2020-04-30', 
+                      start=price_start_day, 
+                      end=price_end_day, 
                       progress=False)
 price_700_df = ta.add_all_ta_features(price_700_df, open='Open', high='High', low='Low', close='Close', volume='Volume', fillna=True)
 price_700_df['Open(t+1)'] = price_700_df['Open'].shift(-1)
 price_700_df['Open(t+1) >= Close'] = np.where(price_700_df['Open(t+1)'] >= price_700_df['Close'] , 1, 0)
-price_700_df.to_csv('data/price_20171001-20200430.gzip', compression='gzip')
+
+nasdaq_df = yf.download('^NDX', start=price_start_day, end=price_end_day, progress=False)
+nasdaq_df['nasdaq_index_change'] = (nasdaq_df['Close'] - nasdaq_df['Open'])/nasdaq_df['Open']
+
+sp500_df = yf.download('^GSPC', start=price_start_day, end=price_end_day, progress=False)
+sp500_df['sp500_index_change'] = (sp500_df['Close'] - sp500_df['Open'])/sp500_df['Open']
+
+dji_df = yf.download('^DJI', start=price_start_day, end=price_end_day, progress=False)
+dji_df['dji_index_change'] = (dji_df['Close'] - dji_df['Open'])/dji_df['Open']
+
+hsi_df = yf.download('^HSI', start=price_start_day, end=price_end_day, progress=False)
+hsi_df['hsi_index_change'] = (hsi_df['Close'] - hsi_df['Open'])/hsi_df['Open']
+
+price_700_df2 = price_700_df.merge(hsi_df[['hsi_index_change']], left_index=True, right_index=True, how='left')
+price_700_df2 = price_700_df2.merge(nasdaq_df[['nasdaq_index_change']], left_index=True, right_index=True, how='left')
+price_700_df2 = price_700_df2.merge(sp500_df[['sp500_index_change']], left_index=True, right_index=True, how='left')
+price_700_df2 = price_700_df2.merge(dji_df[['dji_index_change']], left_index=True, right_index=True, how='left')
+for col in [col for col in price_700_df2.columns if col.endswith('_change')]:
+  price_700_df2[col] = price_700_df2[col].fillna(method='ffill')
+price_700_df2.to_csv('data/price_20171001-20200430.gzip', compression='gzip')
 
 #%%
 newsapi = NewsApiClient(api_key='5209c394a0274f459880a2bd85e07e13') # Init
@@ -58,3 +78,10 @@ for date in date_range:
 news_df = news_df.drop_duplicates(['title'])
 print('final size of the text data', news_df.shape)
 news_df.reset_index(drop=True).to_csv('data/news_20171001-20200430.gzip', compression='gzip')
+
+#%%
+
+# %%
+hsi_df
+
+# %%
