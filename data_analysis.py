@@ -24,7 +24,6 @@ print('number of pca columns:', pca.n_components_)
 pca_cols = ['bert_pca{}'.format(1+i) for i in range(pca.n_components_)]
 bert_pca_df = pd.DataFrame(pca.transform(bert_df), index=bert_df.index, columns=pca_cols)
 
-
 #%%
 news_df = pd.read_csv('data/news_20171001-20200430.gzip', compression='gzip', usecols=['title', 'date']) #for mapping
 sentiment_df = pd.read_csv('sentiment_analysis.csv', usecols=['title_pos', 'desc_pos', 'content_pos'])

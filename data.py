@@ -60,6 +60,7 @@ price_700_df2 = price_700_df.merge(hsi_df[['hsi_index_change']], left_index=True
 price_700_df2 = price_700_df2.merge(nasdaq_df[['nasdaq_index_change']], left_index=True, right_index=True, how='left')
 price_700_df2 = price_700_df2.merge(sp500_df[['sp500_index_change']], left_index=True, right_index=True, how='left')
 price_700_df2 = price_700_df2.merge(dji_df[['dji_index_change']], left_index=True, right_index=True, how='left')
+
 for col in [col for col in price_700_df2.columns if col.endswith('_change')]:
   price_700_df2[col] = price_700_df2[col].fillna(method='ffill')
 price_700_df2.to_csv('data/price_20171001-20200430.gzip', compression='gzip')
@@ -78,10 +79,3 @@ for date in date_range:
 news_df = news_df.drop_duplicates(['title'])
 print('final size of the text data', news_df.shape)
 news_df.reset_index(drop=True).to_csv('data/news_20171001-20200430.gzip', compression='gzip')
-
-#%%
-
-# %%
-hsi_df
-
-# %%
