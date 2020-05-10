@@ -214,16 +214,17 @@ early_stopping = EarlyStopping(monitor='val_loss', patience=100, verbose=2)
 history = lstm_model.fit(X_lstm_train, y_lstm_train, epochs=500, verbose=2, validation_data=[X_lstm_test, y_lstm_test], callbacks=[early_stopping], batch_size=32)
 y_lstm_train_p = lstm_model.predict(X_lstm_train)
 y_lstm_test_p = lstm_model.predict(X_lstm_test)
+
 print('roc_auc in train:', roc_auc_score(y_lstm_train, y_lstm_train_p))
 print('roc_auc in test:', roc_auc_score(y_lstm_test, y_lstm_test_p))
-print('accuracy in train:', accuracy_score(y_train, np.where( y_lstm_train_p >= .5, 1, 0)))
-print('accuracy in test:', accuracy_score(y_test, np.where( y_lstm_test_p >= .5, 1, 0)))
+print('accuracy in train:', accuracy_score(y_lstm_train, np.where( y_lstm_train_p >= .5, 1, 0)))
+print('accuracy in test:', accuracy_score(y_lstm_test, np.where( y_lstm_test_p >= .5, 1, 0)))
 
 # plot history
 plt.plot(history.history['loss'], label='train')
 plt.plot(history.history['val_loss'], label='test')
+plt.xlabel('number of epoch')
+plt.ylabel('loss (binary cross entropy)')
+plt.title('Training LSTM model')
 plt.legend()
 plt.show()
-
-
-# %%
