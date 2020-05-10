@@ -24,7 +24,6 @@ print('number of pca columns:', pca.n_components_)
 pca_cols = ['bert_pca{}'.format(1+i) for i in range(pca.n_components_)]
 bert_pca_df = pd.DataFrame(pca.transform(bert_df), index=bert_df.index, columns=pca_cols)
 
-#%%
 news_df = pd.read_csv('data/news_20171001-20200430.gzip', compression='gzip', usecols=['title', 'date']) #for mapping
 sentiment_df = pd.read_csv('sentiment_analysis.csv', usecols=['title_pos', 'desc_pos', 'content_pos'])
 sentiment_df['sum_mean'] = (sentiment_df['title_pos'] + sentiment_df['desc_pos'] + sentiment_df['content_pos'])/3
@@ -37,7 +36,6 @@ news_df_merged_groupby = news_df_merged_groupby_mean.merge(news_df_merged_groupb
 news_df_merged_groupby.columns = ['_'.join(col) for col in news_df_merged_groupby.columns]
 news_df_merged_groupby['news_count'] = news_df_merged['date'].value_counts()
 
-#%%
 #create holiday date columns and mapping
 cal = hong_kong.HongKong()
 holiday_list = [str(day[0]) for day in cal.holidays(2018)+cal.holidays(2019)+cal.holidays(2020)]
@@ -70,13 +68,14 @@ price_700_df['day'] = price_700_df['date'].dt.day
 price_700_df['weekday'] = price_700_df['date'].dt.weekday
 # price_700_df_merged.head()
 
-# X_train, X_test, y_train, y_test = train_test_split(price_700_df_merged.drop(price_col_list+['date'], axis=1)
-    # , price_700_df_merged['Open(t+1) >= Close'], test_size=.2, random_state=1, stratify=price_700_df_merged['Open(t+1) >= Close'])
-data_len = price_700_df_merged.shape[0]
-X_train = price_700_df_merged.drop(price_col_list+['date'], axis=1).iloc[:9*data_len//10:, :]
-X_test = price_700_df_merged.drop(price_col_list+['date'], axis=1).iloc[9*data_len//10:, :]
-y_train = price_700_df_merged['Open(t+1) >= Close'].iloc[:9*data_len//10]
-y_test = price_700_df_merged['Open(t+1) >= Close'].iloc[9*data_len//10:]
+#%%
+X_train, X_test, y_train, y_test = train_test_split(price_700_df_merged.drop(price_col_list+['date'], axis=1)
+    , price_700_df_merged['Open(t+1) >= Close'], test_size=.2, random_state=1, stratify=price_700_df_merged['Open(t+1) >= Close'])
+# data_len = price_700_df_merged.shape[0]
+# X_train = price_700_df_merged.drop(price_col_list+['date'], axis=1).iloc[:9*data_len//10:, :]
+# X_test = price_700_df_merged.drop(price_col_list+['date'], axis=1).iloc[9*data_len//10:, :]
+# y_train = price_700_df_merged['Open(t+1) >= Close'].iloc[:9*data_len//10]
+# y_test = price_700_df_merged['Open(t+1) >= Close'].iloc[9*data_len//10:]
 
 print(X_train.shape)
 for col in X_train:
@@ -104,8 +103,12 @@ print(cv_result[['mean_train_score', 'mean_test_score']])
 
 importance_feature_df = pd.DataFrame({'col': X_train.columns, 'importance': rs_cv.best_estimator_.feature_importances_})
 print(importance_feature_df.sort_values('importance', ascending=False).head(30))
-print('roc_auc in train:', roc_auc_score(y_train, rs_cv.best_estimator_.predict_proba(X_train)[:,  1]))
-print('roc_auc in test:', roc_auc_score(y_test, rs_cv.best_estimator_.predict_proba(X_test)[:, 1]))
+y_train_p = rs_cv.best_estimator_.predict_proba(X_train)[:,  1]
+y_test_p = rs_cv.best_estimator_.predict_proba(X_test)[:, 1]
+print('roc_auc in train:', roc_auc_score(y_train, y_train_p))
+print('roc_auc in test:', roc_auc_score(y_test, y_test_p))
+print('accuracy in train:', accuracy_score(y_train, np.where( y_train_p >= .5, 1, 0)))
+print('accuracy in test:', accuracy_score(y_test, np.where( y_test_p >= .5, 1, 0)))
 
 #======================================================================
 #======================================================================
