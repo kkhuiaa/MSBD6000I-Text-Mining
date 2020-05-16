@@ -9,6 +9,14 @@ import yahoofinancials
 import ta
 
 def newsapi_to_df(news_dict_list):
+  """transform the news in list format from newsapi.get_everything function
+
+  Arguments:
+      news_dict_list {list} -- a  list format data generated from newsapi
+
+  Returns:
+      pandas.DataFrame -- output dataframe
+  """
   if len(news_dict_list) > 0:
     for news in news_dict_list:
       news['from'] = news['source']['name']
@@ -35,6 +43,14 @@ def newsapi_to_df(news_dict_list):
 #     return gain.rolling(n).apply(rsiCalc) 
 price_start_day = '2017-10-01'
 price_end_day = '2020-04-30'
+
+#%%
+#demo
+yf.download('0700.HK', 
+                      start='2020-05-13', 
+                      end='2020-05-14', 
+                      progress=False)
+
 # %%
 price_700_df = yf.download('0700.HK', 
                       start=price_start_day, 

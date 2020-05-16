@@ -20,6 +20,7 @@ price_col_list = ['Open', 'High', 'Low', 'Close', 'Adj Close', 'Open(t+1)', 'Ope
 
 #convert bert to pca score
 bert_df = pd.read_csv('bert_output20171001-20200430_v1.gzip', compression='gzip', index_col='title')
+print('original shape:', bert_df.shape)
 pca = PCA(n_components=.98)
 pca.fit(bert_df)
 print('number of pca columns:', pca.n_components_)
@@ -112,7 +113,7 @@ print('Hightest cross valid score in XGB:\n'
     , 'Cross train score: {}'.format(cv_xgb.loc[cv_xgb['mean_test_score'].idxmax(), 'mean_train_score'])
     , 'Cross valid score: {}'.format(cv_xgb.loc[cv_xgb['mean_test_score'].idxmax(), 'mean_test_score'])
     , 'param: {}'.format(cv_xgb.loc[cv_xgb['mean_test_score'].idxmax(), 'params']))
-importance_feature_df = pd.DataFrame({'col': X_train.columns, 'importance': rs_cv.best_estimator_.feature_importances_})
+importance_feature_df = pd.DataFrame({'col': X_train.columns, 'importance': rs_xgb.best_estimator_.feature_importances_})
 print(importance_feature_df.sort_values('importance', ascending=False).head(20))
 
 #%%
@@ -228,3 +229,34 @@ plt.ylabel('loss (binary cross entropy)')
 plt.title('Training LSTM model')
 plt.legend()
 plt.show()
+
+#%%
+import shap
+shap_values = shap.TreeExplainer(rs_xgb.best_estimator_).shap_values(X_train)
+# shap.summary_plot(shap_values, X_train, plot_type="bar")
+
+news_raw_df = pd.read_csv('data/news_20171001-20200430.gzip', compression='gzip')
+price_day_list = price_700_df.index.tolist()
+
+shap_values_df = pd.DataFrame(shap_values, columns=X_train.columns, index=X_train.index)
+shap_values_df['bert_effect'] = shap_values_df[[col+'_mean(t-1)' for col in pca_cols]].sum(axis=1)
+
+shap_values_df['xgb_score'] = rs_xgb.best_estimator_.predict_proba(X_train)[:, 1]
+shap_values_df.sort_values(['bert_effect'], ascending=True, inplace=True)
+
+#%%
+case = 0
+index = shap_values_df.index[case]
+print('The T day', index)
+print('XGBoost score:', shap_values_df.loc[index, 'xgb_score'], '(mean value is {})'.format(shap_values_df['xgb_score'].mean()))
+print('Shap values of BERT input', shap_values_df.loc[index, 'bert_effect'])
+t_1_day = price_day_list.index(index) - 1
+print('Previous one trading day (T-1 day):', price_day_list[t_1_day])
+print('\n', 'News in (T-1 day):')
+news_raw_df_day = news_raw_df[news_raw_df['date'] == price_day_list[t_1_day]]
+for index in news_raw_df_day.index:
+    print(news_raw_df_day.loc[index, 'title'])
+    print(news_raw_df_day.loc[index, 'description'])
+    print('='*20)
+# %%
+
