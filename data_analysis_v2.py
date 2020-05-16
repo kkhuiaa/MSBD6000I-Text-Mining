@@ -230,6 +230,10 @@ plt.title('Training LSTM model')
 plt.legend()
 plt.show()
 
+
+#======================================================================
+#======================================================================
+#======================================================================
 #%%
 import shap
 shap_values = shap.TreeExplainer(rs_xgb.best_estimator_).shap_values(X_train)
@@ -258,5 +262,3 @@ for index in news_raw_df_day.index:
     print(news_raw_df_day.loc[index, 'title'])
     print(news_raw_df_day.loc[index, 'description'])
     print('='*20)
-# %%
-
