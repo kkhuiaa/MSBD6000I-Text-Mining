@@ -128,6 +128,14 @@ print('Hightest cross valid score in SVC:\n'
     , 'Cross valid score: {}'.format(cv_svc.loc[cv_svc['mean_test_score'].idxmax(), 'mean_test_score'])
     , 'param: {}'.format(cv_svc.loc[cv_svc['mean_test_score'].idxmax(), 'params']))
 
+best_alg = rs_svc
+y_train_p = best_alg.best_estimator_.predict_proba(X_train)[:,  1]
+y_test_p = best_alg.best_estimator_.predict_proba(X_test)[:, 1]
+print('roc_auc in train:', roc_auc_score(y_train, y_train_p))
+print('roc_auc in test:', roc_auc_score(y_test, y_test_p))
+print('accuracy in train:', accuracy_score(y_train, np.where( y_train_p >= .5, 1, 0)))
+print('accuracy in test:', accuracy_score(y_test, np.where( y_test_p >= .5, 1, 0)))
+
 #%%
 vc = VotingClassifier(estimators=[('xgbc', xgbc), ('svc', svc)], voting='soft', n_jobs=n_jobs)
 param_dist_vc = {}
@@ -139,11 +147,20 @@ for k, v in param_dist_svc.items():
 rs_vc = RandomizedSearchCV(vc, param_dist_vc, n_iter=40
     , return_train_score=True, n_jobs=n_jobs, scoring='roc_auc', cv=StratifiedShuffleSplit(n_splits=3, test_size=.2, random_state=random_state_model))
 rs_vc.fit(X_train, y_train)
+#%%
 cv_vc = pd.DataFrame.from_dict(rs_vc.cv_results_).sort_values('rank_test_score', ascending=False)
 print('Hightest cross valid score in Voting Classifier:\n'
     , 'Cross train score: {}'.format(cv_vc.loc[cv_vc['mean_test_score'].idxmax(), 'mean_train_score'])
     , 'Cross valid score: {}'.format(cv_vc.loc[cv_vc['mean_test_score'].idxmax(), 'mean_test_score'])
     , 'param: {}'.format(cv_vc.loc[cv_vc['mean_test_score'].idxmax(), 'params']))
+
+best_alg = rs_vc
+y_train_p = best_alg.best_estimator_.predict_proba(X_train)[:,  1]
+y_test_p = best_alg.best_estimator_.predict_proba(X_test)[:, 1]
+print('roc_auc in train:', roc_auc_score(y_train, y_train_p))
+print('roc_auc in test:', roc_auc_score(y_test, y_test_p))
+print('accuracy in train:', accuracy_score(y_train, np.where( y_train_p >= .5, 1, 0)))
+print('accuracy in test:', accuracy_score(y_test, np.where( y_test_p >= .5, 1, 0)))
 
 #%%
 best_alg = rs_xgb
