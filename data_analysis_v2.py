@@ -220,16 +220,13 @@ print('y lstm train shape', y_lstm_train.shape)
 
 #lstm model
 lstm_model = Sequential()
-# lstm_model.add(LSTM(units=64, dropout=.5, recurrent_dropout=.5, return_sequences=True))
-# lstm_model.add(Dropout(0.2))
 lstm_model.add(LSTM(units=10, dropout=.5, recurrent_dropout=.5))
 lstm_model.add(BatchNormalization())
-# lstm_model.add(Dense(10, activation='elu'))
-# lstm_model.add(Dropout(0.2))
 lstm_model.add(Dense(units=1, activation='sigmoid'))
 lstm_model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 early_stopping = EarlyStopping(monitor='val_loss', patience=100, verbose=2)
-history = lstm_model.fit(X_lstm_train, y_lstm_train, epochs=500, verbose=2, validation_data=[X_lstm_test, y_lstm_test], callbacks=[early_stopping], batch_size=32)
+history = lstm_model.fit(X_lstm_train, y_lstm_train, epochs=500, verbose=2
+    , validation_data=[X_lstm_test, y_lstm_test], callbacks=[early_stopping], batch_size=32)
 y_lstm_train_p = lstm_model.predict(X_lstm_train)
 y_lstm_test_p = lstm_model.predict(X_lstm_test)
 
