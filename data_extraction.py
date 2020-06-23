@@ -82,7 +82,7 @@ for col in [col for col in price_700_df2.columns if col.endswith('_change')]:
 price_700_df2.to_csv('data/price_20171001-20200430.gzip', compression='gzip')
 
 #%%
-newsapi = NewsApiClient(api_key='5209c394a0274f459880a2bd85e07e13') # Init
+newsapi = NewsApiClient(api_key='') # Init
 news_df = pd.DataFrame()
 date_range = [str(date)[:10] for date in pd.date_range(start='10/1/2017', end='4/30/2020')] #, end='21/4/2020')
 for date in date_range:
